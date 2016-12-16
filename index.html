@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="./assets/css/photon.min.css">
+    <link rel="stylesheet" type="text/css" href="./assets/css/jquery.edittable.min.css">
+    <style>
+      .toolbar-footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+      }
+      .create-head {
+        text-align: center;
+        margin: 0 auto;
+        width: 160px;
+      }
+      table.inputtable {
+        margin: 0;
+      }
+      tr:focus, tr:active {
+        background: white !important;
+        color:#444;
+      }
+      .container {
+        overflow-y: auto;
+        height: 100%;
+        padding-bottom: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="toolbar toolbar-header">
+      <h1 class="title">Header with actions</h1>
+
+      <div class="toolbar-actions">
+        <div class="btn-group">
+          <button id="tohome" class="btn btn-default">
+            <span class="icon icon-home"></span>
+          </button>
+          <button id="new" class="btn btn-default">
+            <span class="icon icon-plus"></span>
+          </button>
+          <button class="btn btn-default">
+            <span class="icon icon-folder"></span>
+          </button>
+          <button class="btn btn-default active">
+            <span class="icon icon-cloud"></span>
+          </button>
+        </div>
+
+       <!--  <button class="btn btn-default">
+          <span class="icon icon-home icon-text"></span>
+          Filters
+        </button> -->
+
+        <button class="btn btn-default btn-dropdown pull-right">
+          <span class="icon icon-megaphone"></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="create-head" style="display:none;">
+        <div class="form-group">
+          <label>Name row</label>
+          <input name="name-row-add" class="form-control" placeholder="">
+        </div>
+        <button id="add-to-table" class="btn btn-mini btn-default">Add to new table</button>
+      <hr />
+      <div class="list-rows">
+        Empty 
+      </div>
+      <hr />
+      <button id="create-table" class="btn btn-mini btn-default">Create</button>
+      </div>
+
+      <div id="main-table" style="disaply:none;">
+      </div>
+    </div>
+  </body>
+  <footer class="toolbar toolbar-footer">
+    <div class="toolbar-actions">
+      <button id="clean" class="btn btn-default">
+        Clean
+      </button>
+
+      <button id="save" class="btn btn-primary pull-right">
+        Save
+      </button>
+    </div>
+  </footer>
+
+  <script>
+    window.$ = window.jQuery = require('jquery');
+  </script>
+  <script src="./assets/js/jquery.edittable.min.js"></script>
+  <script>
+    // You can also require other files to run in this process
+    require('./renderer.js')
+  </script>
+  
+
+  <script id="table-template" type="x-handlebars-template">
+    <table id="test" class="table-striped">
+        <thead>
+          <tr>
+            {{#each rows}}
+            <th id="{{@key}}">{{this}}</th>
+            {{/each}}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {{#each rows}}
+            <td><a href="#!" data-url="false" class="editable">edit me</a></td>
+            {{/each}}
+          </tr>
+        </tbody>
+      </table>
+  </script>
+</html>
