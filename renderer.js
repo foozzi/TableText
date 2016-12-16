@@ -9,10 +9,9 @@
 	const fs = require('fs');
 	const uuid = require('node-uuid');
 	const mkdirp = require('mkdirp');
-	var app = require('electron').remote; 
-	var dialog = app.dialog;
-	ipcRenderer = require('electron').ipcRenderer
-	var Transform = require('stream').Transform;
+	dialog = require('electron').dialog;
+	ipcRenderer = require('electron').ipcRenderer	
+
 	
 	// const Handlebars = require('handlebars');
 
@@ -31,8 +30,8 @@
 		return new Promise((resolve, reject) => {
 			
 			$('.create-head').hide();
-			$('#main-table').show();
-		
+			$('#main-table').html('').show();
+			
 			$("#main-table").editTable({
 				data: [
 					[],
@@ -50,6 +49,8 @@
 
 	document.onreadystatechange = () => {
         if (document.readyState == "complete") {
+        	
+
         	$('#save').on('click', function(){
 				var uniq = uuid.v4();
 				$('tbody tr td input').each(function(){
@@ -74,7 +75,7 @@
 							        }
 									fs.readFile('db/'+arg.key+'.tt', function(err, data) {
 									    console.log(data);
-									    fs.writeFile('test.tt', data, function (err) {
+									    fs.writeFile((Date.now() / 1000 | 0)+'.tt', data, function (err) {
 								           	if(err){
 								               	alert("An error ocurred creating the file "+ err.message)
 								           	}
@@ -130,6 +131,10 @@
 					.then(table => {
 						create_table(table)
 							.then(result => {
+								$('.nav-btn').each(function(){
+									$(this).removeClass('active')
+								})
+								$('#tohome').addClass('active')
 								$('.list-rows').html('Empty')
 								$('#clean, #save').show();
 							})
@@ -148,7 +153,20 @@
 			})
 
 			$('#tohome').on('click', function(){
-				// $('#main-table').hide();
+				if(($('.inputtable').length > 0)) {
+					$('#clean, #save').show();
+				}
+				$('input[name="name-row-add"]').val('');
+				$('.list-rows').html('Empty')
+				$('.create-head').hide()
+				$('#main-table').show();
+			})
+
+			$('.nav-btn').on('click', function(){
+				$('.nav-btn').each(function(){
+					$(this).removeClass('active')
+				})
+				$(this).addClass('active')
 			})
         }
     }
