@@ -1,3 +1,9 @@
 {
-	
+	"tmp": "/.hacktable/tmp/",
+	"data": "/.hacktable/data/",
+
+	"tmp_separator": "/h-",
+	"json_separator": "/j-",
+	"txt_separator": "/t-",
+	"html_separator": "/ht-"
 }

@@ -9,21 +9,20 @@ var template = [
         { type: 'normal', label: "About App", click() { console.log('fdgdfg') } },
         { type: 'separator' },
         { type: 'normal', label: "Save", accelerator: 'Command+S', click() { 
-            Actions.save_as_tt() 
+            Actions.save() 
             return false;
         } },
         { label: 'Save as', submenu: [
         {
             label: 'Save as .txt format',
             click() {
-                Actions.save_as_txt()
+                Actions.save('.txt')
             }
         },
         {
             label: 'Save as .json format',
             click() {
-                alert('in dev')
-                return false;
+                Actions.save('.json')
             }
         },
         {
@@ -36,8 +35,7 @@ var template = [
         {
             label: 'Save as .html format',
             click() {
-                alert('in dev')
-                return false;
+                Actions.save('.html')
             }
         },
         {

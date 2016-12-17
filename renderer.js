@@ -11,9 +11,6 @@
 	const uuid = require('node-uuid');
 	ipcRenderer = require('electron').ipcRenderer	
 
-	
-	// const Handlebars = require('handlebars');
-
 	var create_obj_table = function(dom) {
 		return new Promise((resolve, reject) => {
 			var table = [];
@@ -36,7 +33,6 @@
 					[],
 				],
 				headerCols: table,
-				//maxRows: 3
 			});
 			resolve(true)
 		})

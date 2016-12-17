@@ -7,14 +7,18 @@ const targz = require('tar.gz');
 const mkdirp = require('mkdirp');
 const h = require('./helpers');
 const Helpers = new h();
+const homedir = require('homedir')
+let home = homedir()
+const config = require('./config.json')
+const tidy = require('htmltidy').tidy;
 /**
  * Create tag.gz archive in config dir
  * @param string uniq  
  */
 function create_archive(uniq) {
 	return new Promise((resolve, reject) => {
-		var read = targz().createReadStream('db/'+uniq);
-		var write = fs.createWriteStream('db/'+uniq+'.tt');
+		var read = targz().createReadStream(home+config.data+uniq);
+		var write = fs.createWriteStream(home+config.data+uniq+'.tt');
 		read.pipe(write);
 		resolve(uniq)
 	})
@@ -25,8 +29,7 @@ function create_archive(uniq) {
  */
 function create_space(uniq) {
 	return new Promise((resolve, reject) => {
-		console.log(uniq)
-		mkdirp('db/'+uniq+'/', function (err) {
+		mkdirp(home+config.data+uniq, function (err) {
 		    if (err) reject(err)
 		    else resolve(true)
 		});
@@ -38,11 +41,32 @@ function create_space(uniq) {
  */
 function open_tmp(uniq) {
 	return new Promise((resolve, reject) => {
-		fs.readFile('db/tmp/'+uniq+'/h-'+uniq, 'utf8', function (err,data) {
+		fs.readFile(home+config.tmp+uniq+config.tmp_separator+uniq, 'utf8', function (err,data) {
 		  	if (err && err.errno === -2) {
 		  		reject('No such file or directory')
 		  	}
 		  	resolve(data)
+		});
+	})
+}
+/**
+ * Save local file in html format
+ * @param string uniq  
+ * @param string json
+ */
+function save_html(uniq, html) {
+	return new Promise((resolve, reject) => {
+		var path_html = home+config.data+uniq+config.html_separator+uniq;
+		tidy(html, function(err, html) {
+			if(err) {
+				reject(err)
+			}
+		    fs.writeFile(path_html, html, function(err) {
+			    if(err) {
+			        reject(err)
+			    }
+			    resolve(path_html);
+			}); 
 		});
 	})
 }
@@ -53,11 +77,12 @@ function open_tmp(uniq) {
  */
 function save_json(uniq, json) {
 	return new Promise((resolve, reject) => {
-		fs.writeFile("db/"+uniq+"/j-"+uniq, JSON.stringify(json), function(err) {
+		var path_json = home+config.data+uniq+config.json_separator+uniq;
+		fs.writeFile(path_json, JSON.stringify(json), function(err) {
 		    if(err) {
 		        reject(err)
 		    }
-		    resolve();
+		    resolve(path_json);
 		}); 
 	})
 }
@@ -68,11 +93,12 @@ function save_json(uniq, json) {
  */
 function save_text(uniq, text) {
 	return new Promise((resolve, reject) => {
-		fs.writeFile("db/"+uniq+"/t-"+uniq, text, function(err) {
+		var path_txt = home+config.data+uniq+config.txt_separator+uniq;
+		fs.writeFile(path_txt, text, function(err) {
 		    if(err) {
 		        reject(err)
 		    }
-		  	resolve()
+		  	resolve(path_txt)
 		}); 
 	})
 }
@@ -111,10 +137,11 @@ function parse2clear(html) {
 	})
 }
 /**
- * Save complete tar.gz archive with data
+ * Save as .txt
  */
-ipcMain.on('save_tt', function(event, args) {
+ipcMain.on('save_text', function(event, args) {
 	this.key = args.key
+	this.type = args.type
 
 	create_space(this.key)
 		.then(result => {
@@ -139,21 +166,158 @@ ipcMain.on('save_tt', function(event, args) {
 					})
 					.then(text => {
 						save_text(this.key, text)
+							.then(path => {
+								event.sender.send('save_text', {
+						            err: 0,
+						            key: this.key,
+						            path: path
+						        });
+							})
 							.catch(err => {
 								console.log(err)
 							})
-						return;
+						// return;
+					})
+				.catch(err => {
+					console.log(err)
+				})
+			}
+	})
+})
+/**
+ * Save as .json
+ */
+ipcMain.on('save_json', function(event, args) {
+	this.key = args.key
+	this.type = args.type
+
+	create_space(this.key)
+		.then(result => {
+			if(result) {
+				open_tmp(this.key)
+					.then(data => {
+						return data
+					})
+					.then(data => {
+						return parse2clear(data)
+					})
+					.then(json => {
+						save_json(this.key, json)
+							.then(path => {
+								event.sender.send('save_json', {
+						            err: 0,
+						            key: this.key,
+						            result: true,
+						            path: path
+						        });
+							})
+							.catch(err => {
+								console.log(err)
+							})
+						return json
+					})
+				.catch(err => {
+					console.log(err)
+				})
+			}
+	})
+})
+/**
+ * Save as .html
+ */
+ipcMain.on('save_html', function(event, args) {
+	this.key = args.key
+	this.type = args.type
+
+	create_space(this.key)
+		.then(result => {
+			if(result) {
+				open_tmp(this.key)
+					.then(data => {
+						return data
+					})			
+					.then(html => {
+						save_html(this.key, html)
+							.then(path => {
+								event.sender.send('save_html', {
+						            err: 0,
+						            key: this.key,
+						            result: true,
+						            path: path
+						        });
+							})
+							.catch(err => {
+								console.log(err)
+							})
+						return html
+					})
+				.catch(err => {
+					console.log(err)
+				})
+			}
+	})
+})
+/**
+ * Save complete tar.gz archive with data
+ */
+ipcMain.on('save', function(event, args) {
+	this.key = args.key
+	this.type = args.type
+
+	create_space(this.key)
+		.then(result => {
+			if(result) {
+				open_tmp(this.key)
+					.then(data => {
+						return data
+					})
+					.then(data => {
+						return parse2clear(data)
+					})
+					.then(json => {
+						save_json(this.key, json)
+							.catch(err => {
+								console.log(err)
+							})
+						return json
+					})
+					.then(json => {
+						var table = new AsciiTable().fromJSON(json)
+						return table.render();
+					})
+					.then(text => {
+						save_text(this.key, text)
+							.then(path => {
+								event.sender.send('save', {
+						            err: 0,
+						            key: this.key,
+						            result: true,
+						            path: path+this.type
+						        });
+							})
+							.catch(err => {
+								console.log(err)
+							})
+						// return;
 					})
 					.then(_ => {
 						create_archive(this.key)
+							.then(archive_path => {
+								event.sender.send('save', {
+						            err: 0,
+						            key: this.key,
+						            result: true,
+						            path: archive_path
+						        });
+							})
 							.catch(err => {
 								console.log(err)
 							})
 					})
 					.then(clear => {
-						Helpers.deleteFile('db/tmp/'+this.key+'/', 'h-'+this.key)
+						Helpers.deleteFile(home+config.tmp+this.key, config.tmp_separator+this.key)
 							.then(res => {
-								Helpers.deleteDirectory('db/tmp/'+this.key)
+								Helpers.deleteDirectory(home+config.tmp+this.key)
 									.then()
 									.catch(err => {
 										console.log(err)
@@ -161,12 +325,7 @@ ipcMain.on('save_tt', function(event, args) {
 							})
 							.catch(err => {
 								console.log(err)
-							})
-						event.sender.send('save_format', {
-				            err: 0,
-				            key: this.key,
-				            result: true
-				        });
+							})	
 					})
 					.catch(err => {
 						console.log(err)

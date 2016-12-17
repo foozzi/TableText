@@ -3,16 +3,33 @@
 const {dialog} = require('electron').remote
 const fs = require('fs')
 const path = require('path')
-const uuid = require('node-uuid');
-const mkdirp = require('mkdirp');
+const uuid = require('node-uuid')
+const mkdirp = require('mkdirp')
+const homedir = require('homedir')
+let home = homedir()
+const config = require('./config.json')
 
 var menuactions = function() {
 }
-
 /**
  * Open dialog for save .tt file 
  */
-menuactions.prototype.save_as_tt = function () {
+menuactions.prototype.save = function (type) {
+	if(type === undefined) {
+		type = '.tt';
+	}
+	var ipc = '.tt'
+	switch(type) {
+	  case '.txt':  // if (x === 'value2')
+	    ipc = 'save_text'
+	    break
+	  case '.json':
+	  	ipc = 'save_json'
+	  	break
+	  case '.html':
+	  	ipc = 'save_html'
+	  	break
+	}
 	if($('tbody tr').length < 1) {
 		alert('Nothing saving')
 		return false;
@@ -22,24 +39,27 @@ menuactions.prototype.save_as_tt = function () {
 		$(this).attr("value", $(this).val()); 
 	})
 	var table = $('#main-table').html();
-	mkdirp('db/tmp/'+uniq+'/', function (err) {
+	mkdirp(home+config.tmp+uniq, function (err) {
 	    if (err) {
 	    	console.log(err)
 	    } else {
 	    	
-	    	fs.writeFile("db/tmp/"+uniq+"/h-"+uniq, table, function(err) {
+	    	fs.writeFile(home+config.tmp+uniq+config.tmp_separator+uniq, table, function(err) {
 			    if(err) {
 			        console.log(err)
 			    }
-			    ipcRenderer.send('save_tt', {key: uniq})
-			    ipcRenderer.once('save_tt', function(event, arg){				
-			    	dialog.showSaveDialog({defaultPath:(Date.now() / 1000 | 0).toString()+'.tt'}, function (fileName) {
+
+			    ipcRenderer.send(ipc, {key: uniq, type: type})
+			    ipcRenderer.once(ipc, function(event, arg){	
+			    	console.log(arg)
+			    	dialog.showSaveDialog({defaultPath:(Date.now() / 1000 | 0).toString()+type}, function (fileName) {
+
 				        if (fileName === undefined){
 				            console.log("You didn't save the file");
 				            return;
 				        }
-						fs.readFile('db/'+arg.key+'.tt', function(err, data) {
-						    console.log(data);
+
+						fs.readFile(arg.path, function(err, data) {
 						    fs.writeFile(fileName, data, function (err) {
 					           	if(err){
 					               	alert("An error ocurred creating the file "+ err.message)
