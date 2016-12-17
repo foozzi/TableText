@@ -7,19 +7,11 @@ const targz = require('tar.gz');
 const mkdirp = require('mkdirp');
 const h = require('./helpers');
 const Helpers = new h();
-
-function html2json(html) {
-	return new Promise((resolve, reject) => {
-		let $ = cheerio.load('html')
-		$('thead.tr').forEach(function(){
-			console.log(this)
-			resolve(this)
-		})
-
-	})
-}
-
-function create_array(uniq) {
+/**
+ * Create tag.gz archive in config dir
+ * @param string uniq  
+ */
+function create_archive(uniq) {
 	return new Promise((resolve, reject) => {
 		var read = targz().createReadStream('db/'+uniq);
 		var write = fs.createWriteStream('db/'+uniq+'.tt');
@@ -27,7 +19,10 @@ function create_array(uniq) {
 		resolve(uniq)
 	})
 }
-
+/**
+ * Create local config dir
+ * @param string uniq  
+ */
 function create_space(uniq) {
 	return new Promise((resolve, reject) => {
 		console.log(uniq)
@@ -37,7 +32,10 @@ function create_space(uniq) {
 		});
 	})
 }
-
+/**
+ * Open temp file with html table code
+ * @param string uniq  
+ */
 function open_tmp(uniq) {
 	return new Promise((resolve, reject) => {
 		fs.readFile('db/tmp/'+uniq+'/h-'+uniq, 'utf8', function (err,data) {
@@ -48,7 +46,11 @@ function open_tmp(uniq) {
 		});
 	})
 }
-
+/**
+ * Save local file in json format
+ * @param string uniq  
+ * @param string json
+ */
 function save_json(uniq, json) {
 	return new Promise((resolve, reject) => {
 		fs.writeFile("db/"+uniq+"/j-"+uniq, JSON.stringify(json), function(err) {
@@ -59,6 +61,11 @@ function save_json(uniq, json) {
 		}); 
 	})
 }
+/**
+ * Save local file in text format
+ * @param string uniq 
+ * @param strin text 
+ */
 function save_text(uniq, text) {
 	return new Promise((resolve, reject) => {
 		fs.writeFile("db/"+uniq+"/t-"+uniq, text, function(err) {
@@ -69,7 +76,10 @@ function save_text(uniq, text) {
 		}); 
 	})
 }
-
+/**
+ * Parse html table to clear json
+ * @param string html  
+ */
 function parse2clear(html) {
 	return new Promise((resolve, reject) => {
 		let $ = cheerio.load(html)
@@ -100,8 +110,10 @@ function parse2clear(html) {
 		resolve({title: 'test', heading: head, rows: rows});
 	})
 }
-
-ipcMain.on('save_format', function(event, args) {
+/**
+ * Save complete tar.gz archive with data
+ */
+ipcMain.on('save_tt', function(event, args) {
 	this.key = args.key
 
 	create_space(this.key)
@@ -133,7 +145,7 @@ ipcMain.on('save_format', function(event, args) {
 						return;
 					})
 					.then(_ => {
-						create_array(this.key)
+						create_archive(this.key)
 							.catch(err => {
 								console.log(err)
 							})
