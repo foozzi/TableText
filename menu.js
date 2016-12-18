@@ -1,12 +1,12 @@
 const {remote} = require('electron')
-const {Menu, MenuItem} = remote
+const {Menu, MenuItem, app} = remote
 const m = require('./menuactions');
 const Actions = new m();
 
 const menu = new Menu()
 var template = [
     { label: "App", submenu: [
-        { type: 'normal', label: "About App", click() { console.log('fdgdfg') } },
+        { type: 'normal', label: "About App", click() { alert('In Dev :)') } },
         { type: 'separator' },
         { type: 'normal', label: "Save", accelerator: 'Command+S', click() { 
             Actions.save() 

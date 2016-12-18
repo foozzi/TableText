@@ -20,7 +20,7 @@ menuactions.prototype.save = function (type) {
 	}
 	var ipc = '.tt'
 	switch(type) {
-	  case '.txt':  // if (x === 'value2')
+	  case '.txt':  
 	    ipc = 'save_text'
 	    break
 	  case '.json':
