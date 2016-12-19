@@ -57,7 +57,19 @@ function open_tmp(uniq) {
 function save_html(uniq, html) {
 	return new Promise((resolve, reject) => {
 		var path_html = home+config.data+uniq+config.html_separator+uniq;
-		tidy(html, function(err, html) {
+		let $ = cheerio.load(html)
+		$('table tbody tr').each(function(i, e) {
+			$('table tbody tr:nth-child('+(parseInt(i)+1)+') td input').each(function(o, e){
+				$('table tbody tr:nth-child('+(parseInt(i)+1)+') td:nth-child('+(parseInt(o)+1)+')').text($(e).val().trim())
+				if($('table tbody tr:nth-child('+(parseInt(i)+1)+') td').text() === '+' || $('table tbody tr:nth-child('+(parseInt(i)+1)+') td').text() === '-') {
+					$('table tbody tr:nth-child('+(parseInt(i)+1)+') td').remove()
+				}
+			})
+		})
+
+		$('table thead tr th:last-child').remove()
+		// return false;
+		tidy($('table').html(), function(err, html) {
 			if(err) {
 				reject(err)
 			}

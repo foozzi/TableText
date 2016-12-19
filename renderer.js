@@ -4,8 +4,6 @@
 
 (function(){
 	
-
-
 	const fs = require('fs');
 	
 	const uuid = require('node-uuid');
