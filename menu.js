@@ -28,8 +28,7 @@ var template = [
         {
             label: 'Save as Excel format',
             click() {
-                alert('in dev')
-                return false;
+                Actions.save('.xlsx')
             }
         },
         {
@@ -41,8 +40,7 @@ var template = [
         {
             label: 'Save as .csv format',
             click() {
-                alert('in dev')
-                return false;
+               Actions.save('.csv')
             }
         },
         ] },

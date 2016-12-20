@@ -10,7 +10,9 @@ const Helpers = new h();
 const homedir = require('homedir')
 let home = homedir()
 const config = require('./config.json')
-const tidy = require('htmltidy').tidy;
+const clean_html = require('clean-html')
+const tableToCsv = require('node-table-to-csv');
+const html2excel = require('html2xlsx');
 /**
  * Create tag.gz archive in config dir
  * @param string uniq  
@@ -50,6 +52,23 @@ function open_tmp(uniq) {
 	})
 }
 /**
+ * clearing table html
+ * @param string 
+ */
+function clear_table(html, cb) {
+	let $ = cheerio.load(html)
+
+	$('table tbody tr').each(function(i, e) {
+		$('table tbody tr:nth-child('+(parseInt(i)+1)+') td:last-child').remove()
+		$('table tbody tr:nth-child('+(parseInt(i)+1)+') td input').each(function(o, e){
+			$('table tbody tr:nth-child('+(parseInt(i)+1)+') td:nth-child('+(parseInt(o)+1)+')').text($(e).val().trim())
+		})
+	})
+
+	$('table thead tr th:last-child').remove();
+	return cb($('table').html())
+}
+/**
  * Save local file in html format
  * @param string uniq  
  * @param string json
@@ -57,29 +76,60 @@ function open_tmp(uniq) {
 function save_html(uniq, html) {
 	return new Promise((resolve, reject) => {
 		var path_html = home+config.data+uniq+config.html_separator+uniq;
-		let $ = cheerio.load(html)
-		$('table tbody tr').each(function(i, e) {
-			$('table tbody tr:nth-child('+(parseInt(i)+1)+') td input').each(function(o, e){
-				$('table tbody tr:nth-child('+(parseInt(i)+1)+') td:nth-child('+(parseInt(o)+1)+')').text($(e).val().trim())
-				if($('table tbody tr:nth-child('+(parseInt(i)+1)+') td').text() === '+' || $('table tbody tr:nth-child('+(parseInt(i)+1)+') td').text() === '-') {
-					$('table tbody tr:nth-child('+(parseInt(i)+1)+') td').remove()
-				}
-			})
+		
+		clear_table(html, function(clear){
+			clean_html.clean(clear, function (html) {
+		        fs.writeFile(path_html, '<table>'+html+'</table>', function(err) {
+				    if(err) {
+				        reject(err)
+				    }
+				    resolve(path_html);
+				}); 
+		    });
 		})
+	})
+}
+/**
+ * Save local file in csv format
+ * @param string uniq
+ * @param string html
+ */
+function save_csv(uniq, html) {
+	return new Promise((resolve, reject) => {
+		var path_csv = home+config.data+uniq+config.csv_separator+uniq;
 
-		$('table thead tr th:last-child').remove()
-		// return false;
-		tidy($('table').html(), function(err, html) {
-			if(err) {
-				reject(err)
-			}
-		    fs.writeFile(path_html, html, function(err) {
+		clear_table(html, function(clear){
+			csv = tableToCsv('<table>'+clear+'</table>');
+			console.log(csv)
+			fs.writeFile(path_csv, csv, function(err) {
 			    if(err) {
 			        reject(err)
 			    }
-			    resolve(path_html);
+			    resolve(path_csv);
 			}); 
-		});
+		})
+	})
+}
+/**
+ * Save local file in xlsn format
+ * @param string uniq
+ * @param string html
+ */
+function save_excel(uniq, html) {
+	return new Promise((resolve, reject) => {
+		var path_xlsn = home+config.data+uniq+config.xlsn_separator+uniq;
+
+		clear_table(html, function(clear){
+			html2excel('<table>'+clear+'</table>', function(err, data){
+				if(err) {
+					reject(err)
+				}
+				data.saveAs()
+				    .pipe(fs.createWriteStream(path_xlsn))
+				    .on('finish', () => resolve(path_xlsn));
+			});
+			
+		})
 	})
 }
 /**
@@ -135,15 +185,8 @@ function parse2clear(html) {
 		$('table tbody tr').each(function(i, e) {
 			rows[i] = []
 			$('table tbody tr:nth-child('+(parseInt(i)+1)+') td input').each(function(o, e){
-				// console.log($(e).val().trim())
 				rows[i][o] = $(e).val().trim();
 			})
-			// rows.push($(this).text())
-			// for(var i = 0; rows.length > i; i++) {
-			// 	for(var o = 0; rows[i].length > o; o++) {
-			// 		rows[i][o] = rows[i][o].trim()
-			// 	}
-			// }
 		})
 		resolve({title: 'test', heading: head, rows: rows});
 	})
@@ -252,6 +295,76 @@ ipcMain.on('save_html', function(event, args) {
 						save_html(this.key, html)
 							.then(path => {
 								event.sender.send('save_html', {
+						            err: 0,
+						            key: this.key,
+						            result: true,
+						            path: path
+						        });
+							})
+							.catch(err => {
+								console.log(err)
+							})
+						return html
+					})
+				.catch(err => {
+					console.log(err)
+				})
+			}
+	})
+})
+/**
+ * Save as .csv
+ */
+ipcMain.on('save_csv', function(event, args) {
+	this.key = args.key
+	this.type = args.type
+
+	create_space(this.key)
+		.then(result => {
+			if(result) {
+				open_tmp(this.key)
+					.then(data => {
+						return data
+					})			
+					.then(html => {
+						save_csv(this.key, html)
+							.then(path => {
+								event.sender.send('save_csv', {
+						            err: 0,
+						            key: this.key,
+						            result: true,
+						            path: path
+						        });
+							})
+							.catch(err => {
+								console.log(err)
+							})
+						return html
+					})
+				.catch(err => {
+					console.log(err)
+				})
+			}
+	})
+})
+/**
+ * Save as .csv
+ */
+ipcMain.on('save_xlsx', function(event, args) {
+	this.key = args.key
+	this.type = args.type
+
+	create_space(this.key)
+		.then(result => {
+			if(result) {
+				open_tmp(this.key)
+					.then(data => {
+						return data
+					})			
+					.then(html => {
+						save_excel(this.key, html)
+							.then(path => {
+								event.sender.send('save_xlsx', {
 						            err: 0,
 						            key: this.key,
 						            result: true,

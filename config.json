@@ -5,5 +5,7 @@
 	"tmp_separator": "/h-",
 	"json_separator": "/j-",
 	"txt_separator": "/t-",
-	"html_separator": "/ht-"
+	"html_separator": "/ht-",
+	"csv_separator": "/csv-",
+	"xlsn_separator": "/xlsx-"
 }

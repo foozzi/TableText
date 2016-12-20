@@ -29,6 +29,12 @@ menuactions.prototype.save = function (type) {
 	  case '.html':
 	  	ipc = 'save_html'
 	  	break
+	  case '.csv':
+	  	ipc = 'save_csv'
+	  	break
+	  case '.xlsx':
+	  	ipc = 'save_xlsx'
+	  	break
 	}
 	if($('tbody tr').length < 1) {
 		alert('Nothing saving')
@@ -41,21 +47,22 @@ menuactions.prototype.save = function (type) {
 	var table = $('#main-table').html();
 	mkdirp(home+config.tmp+uniq, function (err) {
 	    if (err) {
-	    	console.log(err)
+	    	alert(err)
+	    	return;
 	    } else {
 	    	
 	    	fs.writeFile(home+config.tmp+uniq+config.tmp_separator+uniq, table, function(err) {
 			    if(err) {
-			        console.log(err)
+			        alert(err)
+			        return;
 			    }
 
 			    ipcRenderer.send(ipc, {key: uniq, type: type})
 			    ipcRenderer.once(ipc, function(event, arg){	
-			    	console.log(arg)
 			    	dialog.showSaveDialog({defaultPath:(Date.now() / 1000 | 0).toString()+type}, function (fileName) {
 
 				        if (fileName === undefined){
-				            console.log("You didn't save the file");
+				            alert('You didn\'t save the file')
 				            return;
 				        }
 
@@ -63,6 +70,7 @@ menuactions.prototype.save = function (type) {
 						    fs.writeFile(fileName, data, function (err) {
 					           	if(err){
 					               	alert("An error ocurred creating the file "+ err.message)
+					               	return
 					           	}
 								alert("The file has been succesfully saved");
 						    });
@@ -73,7 +81,6 @@ menuactions.prototype.save = function (type) {
 					}); 
 			    	
 			    })
-			    console.log('ok')
 			}); 
 	    }
 	});
