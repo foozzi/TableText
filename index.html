@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8">
     <title></title>
-    <link rel="stylesheet" href="./assets/css/photon.min.css">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
     <link rel="stylesheet" type="text/css" href="./assets/css/jquery.edittable.min.css">
     <style>
       .toolbar-footer {
@@ -31,13 +32,13 @@
       table.inputtable {
         box-shadow: none;
       }
-
+      body {
+        background: #607D8B;
+      }
     </style>
   </head>
   <body>
     <header class="toolbar toolbar-header">
-      <h1 class="title">HackTable</h1>
-
       <div class="toolbar-actions">
         <div class="btn-group">
           <button id="tohome" class="btn btn-default nav-btn active">
@@ -96,6 +97,9 @@
   <script>
     window.$ = window.jQuery = require('jquery');
   </script>
+  <script type="text/javascript" src="http://hammerjs.github.io/dist/hammer.min.js"></script>
+  <!-- Compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
   <script src="./assets/js/jquery.edittable.min.js"></script>
   <script>
     // You can also require other files to run in this process
