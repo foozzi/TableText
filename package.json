@@ -23,6 +23,7 @@
   "dependencies": {
     "electron-menu": "^1.0.0",
     "handlebars": "^4.0.6",
-    "html-table-to-json": "^0.2.0"
+    "html-table-to-json": "^0.2.0",
+    "primer-css": "^4.4.0"
   }
 }

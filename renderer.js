@@ -69,7 +69,16 @@
 				}
 
 				var uniq_row = uuid.v4();
-				$('.list-rows').append('<span id="'+uniq_row+'">'+row+'</span> - <a href="#!" id="'+uniq_row+'">delete</a><br />')
+				$('.list-rows').append('<span id="'+uniq_row+'">'+row+'</span> <strong id="'+uniq_row+'" class="separator">-</strong> <a href="#!" class="remove-from-table" id="'+uniq_row+'">delete</a><br />')
+
+				$('.remove-from-table').on('click', function(){
+					var id = $(this).attr('id');
+					$('span[id="'+id+'"], a[id="'+id+'"], strong[id="'+id+'"]').remove()
+					if($('.list-rows span').length < 1) {
+						$('.list-rows').html('Empty');
+					}
+					return false;
+				})
 			})
 
 			$('#create-table').on('click', function(){
@@ -119,6 +128,7 @@
 				})
 				$(this).addClass('active')
 			})
+
         }
     }
 }())
